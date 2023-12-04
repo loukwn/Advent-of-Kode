@@ -26,10 +26,9 @@ fun main() {
 
             val copiesOfNextCard = toCheck.count { it in winners }
             map.addTo(index, 1)
-            repeat(map[index] ?: 1) {
-                repeat(copiesOfNextCard) {
-                    map.addTo(index + 1 + it, 1)
-                }
+
+            repeat(copiesOfNextCard) {
+                map.addTo(index + 1 + it, map[index] ?: 1)
             }
         }
 
