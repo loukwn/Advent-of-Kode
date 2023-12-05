@@ -1,44 +1,7 @@
 import kotlin.time.measureTimedValue
 
 fun main() {
-    fun calculateNextRound(lastRoundItems: List<Long>, map: List<String>): List<Long> {
-        return lastRoundItems.map { num ->
-            map.forEach { mapEntry ->
-                val parsedMapEntry = mapEntry.split(" ").map { it.toLong() }
-                if (num in parsedMapEntry[1]..parsedMapEntry[1] + parsedMapEntry[2]) {
-                    return@map parsedMapEntry[0] + num - parsedMapEntry[1]
-                }
-            }
-            num
-        }
-    }
-
-    fun part1(input: List<String>): Long {
-        val seeds = input[0].substringAfter(": ").split(" ").map { it.toLong() }
-
-        val roundItems = seeds.toMutableList()
-        var index = 3
-        val map = mutableListOf<String>()
-        do {
-            val line = input[index]
-            if (line.isEmpty() || !line[0].isDigit()) {
-                // do calculations
-                roundItems.addAll(calculateNextRound(roundItems.takeLast(seeds.size), map))
-                map.clear()
-                index += 2
-            } else {
-                map.add(line)
-                index += 1
-                if (index == input.size) {
-                    roundItems.addAll(calculateNextRound(roundItems.takeLast(seeds.size), map))
-                }
-            }
-        } while (index < input.size)
-
-        return roundItems.takeLast(seeds.size).min()
-    }
-
-    fun part2(input: List<String>): Long {
+    fun parseInput(input: List<String>): Pair<List<Long>, List<List<List<Long>>>> {
         val seeds = input[0].substringAfter(": ").split(" ").map { it.toLong() }
 
         var index = 3
@@ -47,7 +10,6 @@ fun main() {
         do {
             val line = input[index]
             if (line.isEmpty() || !line[0].isDigit()) {
-                // do calculations
                 layers.add(layer.toList())
                 layer.clear()
                 index += 2
@@ -59,6 +21,27 @@ fun main() {
                 }
             }
         } while (index < input.size)
+
+        return seeds to layers
+    }
+
+    fun part1(input: List<String>): Long {
+        val (seeds, layers) = parseInput(input)
+
+        return layers.fold(seeds) { roundItems, layer ->
+            roundItems.map { num ->
+                layer.forEach { mapEntry ->
+                    if (num in mapEntry[1]..mapEntry[1] + mapEntry[2]) {
+                        return@map mapEntry[0] + num - mapEntry[1]
+                    }
+                }
+                num
+            }
+        }.min()
+    }
+
+    fun part2(input: List<String>): Long {
+        val (seeds, layers) = parseInput(input)
 
         val reversedLayers = layers.reversed()
         var possibleSolution = 0L
@@ -73,7 +56,7 @@ fun main() {
 
                 acc
             }
-            // if seed in seeds then return here
+
             val seedInOriginalSeeds = seeds
                 .chunked(2)
                 .map { range ->
