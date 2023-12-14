@@ -16,28 +16,18 @@ fun main() {
     fun part2(input: List<String>): Int {
         fun tiltInDirection(input: List<List<Char>>, direction: Int): Pair<List<List<Char>>, Int> {
             val newRockSetup = mutableListOf<MutableList<Char>>().apply {
-                repeat(if (direction % 2 == 0) input.size else input[0].size) {
-                    add(
-                        mutableListOf<Char>().apply {
-                            repeat(if (direction % 2 == 0) input[0].size else input.size) {
-                                add(
-                                    '.',
-                                )
-                            }
-                        },
-                    )
-                }
+                repeat(input.size) { add(mutableListOf<Char>().apply { repeat(input.size) { add('.') } }) }
             }
 
-            val indices = if (direction % 2 == 0) input[0].indices else input.indices
             val minorSide = when (direction) {
                 0 -> input
                 1 -> input[0].indices.map { a -> buildList { repeat(input.size) { b -> add(input[b][a]) } } }
                 2 -> input.reversed()
-                else -> input[0].indices.map { a -> buildList { repeat(input.size) { b -> add(input[b][a]) } } }.reversed()
+                else -> input[0].indices.map { a -> buildList { repeat(input.size) { b -> add(input[b][a]) } } }
+                    .reversed()
             }
 
-            val score = indices.sumOf { minorIndex ->
+            val score = input.indices.sumOf { minorIndex ->
                 minorSide.foldIndexed(0 to 0) { index, acc, row ->
                     when (row[minorIndex]) {
                         'O' -> {
@@ -65,13 +55,19 @@ fun main() {
         }
 
         var rocks = input.map { it.toList() }
-        repeat(100) {
-            repeat(4) { tiltInDirection(rocks, it).also { rocks = it.first } }
-        }
+        val listOfScores = mutableListOf<Int>()
 
-        return rocks.mapIndexed { index, chars ->
-            chars.count { it == 'O' } * (rocks.size - index)
-        }.sum()
+        while (true) {
+            repeat(4) { tiltInDirection(rocks, it).also { rocks = it.first } }
+            val score = rocks.mapIndexed { index, chars ->
+                chars.count { it == 'O' } * (rocks.size - index)
+            }.sum()
+
+            if (score in listOfScores) {
+                return score
+            }
+            listOfScores.add(score)
+        }
     }
 
     val input = readInput("inputs/Day14")
